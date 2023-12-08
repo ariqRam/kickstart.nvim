@@ -265,12 +265,16 @@ require('lazy').setup({
   --    Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
 }, {})
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
 -- NOTE: You can change these options as you wish!
+
+-- Set tabstop to 4
+vim.opt.softtabstop = 4
+vim.opt.shiftwidth = 4
 
 -- Set highlight on search
 vim.o.hlsearch = false
