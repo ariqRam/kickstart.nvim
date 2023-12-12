@@ -323,6 +323,14 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
+-- Move line (v)
+vim.keymap.set('v', '<M-j>', ":m '>+1<CR>gv=gv", { desc = 'move line down(v)'})
+vim.keymap.set('v', '<M-k>', ":m '<-2<CR>gv=gv", { desc = 'move line up(v)'})
+
+-- Move line up / down
+vim.keymap.set('n', '<M-j>', ':m .+1<CR>==', { desc = 'move line down(n)'})
+vim.keymap.set('n', '<M-k>', ':m .-2<CR>==', { desc = 'move line up(n)'})
+
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
@@ -338,6 +346,18 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
   group = highlight_group,
   pattern = '*',
+})
+
+-- [[[Configure Conform]]]
+require("conform").setup({
+  formatters_by_ft = {
+    lua = { "stylua" },
+    -- Conform will run multiple formatters sequentially
+    python = { "isort", "black" },
+    -- Use a sub-list to run only the first available formatter
+    javascript = { { "prettierd", "prettier" } },
+    c = {{}}
+  },
 })
 
 -- [[ Configure Telescope ]]
@@ -419,6 +439,9 @@ vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc
 vim.keymap.set('n', '<leader>sG', ':LiveGrepGitRoot<cr>', { desc = '[S]earch by [G]rep on Git Root' })
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]esume' })
+
+-- Neotree
+vim.keymap.set('n', '<C-b>', '<Cmd>Neotree toggle<CR>')
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
