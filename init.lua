@@ -682,8 +682,6 @@ require('lazy').setup({
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
-        phpactor = {},
-
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -768,6 +766,8 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        blade = { 'blade-formatter' },
+        php = { 'php_cs_fixer' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -894,7 +894,7 @@ require('lazy').setup({
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'tokyonight-storm'
     end,
   },
 
@@ -903,6 +903,15 @@ require('lazy').setup({
 
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
+    dependencies = {
+      {
+        'nvim-treesitter/nvim-treesitter-textobjects',
+        init = function()
+          -- no need to load the plugin, since we only need its queries
+          require('lazy.core.loader').disable_rtp_plugin 'nvim-treesitter-textobjects'
+        end,
+      },
+    },
     config = function()
       -- Better Around/Inside textobjects
       --
@@ -910,7 +919,20 @@ require('lazy').setup({
       --  - va)  - [V]isually select [A]round [)]paren
       --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
       --  - ci'  - [C]hange [I]nside [']quote
-      require('mini.ai').setup { n_lines = 500 }
+      local spec_treesitter = require('mini.ai').gen_spec.treesitter
+      require('mini.ai').setup {
+        custom_textobjects = {
+          F = spec_treesitter { a = '@function.outer', i = '@function.inner' },
+          o = spec_treesitter {
+            a = { '@conditional.outer' },
+            i = { '@conditional.inner' },
+          },
+          L = require('mini.ai').gen_spec.treesitter {
+            a = { '@loop.outer' },
+            i = { '@loop.inner' },
+          },
+        },
+      }
 
       -- Add/delete/replace surroundings (brackets, quotes, etc.)
       --
@@ -940,6 +962,7 @@ require('lazy').setup({
   },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    init = function() end,
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
@@ -956,6 +979,26 @@ require('lazy').setup({
       },
       indent = { enable = true, disable = { 'ruby' } },
     },
+    config = function(_, opts)
+      local parser_config = require('nvim-treesitter.parsers').get_parser_configs()
+
+      parser_config.blade = {
+        install_info = {
+          url = 'https://github.com/EmranMR/tree-sitter-blade',
+          files = { 'src/parser.c' },
+          branch = 'main',
+        },
+        filetype = 'blade',
+      }
+
+      vim.filetype.add {
+        pattern = {
+          ['.*%.blade%.php'] = 'blade',
+        },
+      }
+
+      require('nvim-treesitter.configs').setup(opts)
+    end,
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
     --
@@ -984,7 +1027,7 @@ require('lazy').setup({
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
@@ -1011,6 +1054,7 @@ require('lazy').setup({
     },
   },
 })
+require('oil').setup()
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
